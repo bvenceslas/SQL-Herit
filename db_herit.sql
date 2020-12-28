@@ -98,3 +98,38 @@ union all
 select p.id, p.nom, p.prenom, p.sexe, 'USER' as category
     from t_person p, t_user u
         where p.id = u.id
+
+
+-- use the merge syntax
+create table t_book
+(
+    id int not null,
+    title varchar(255) not null,
+    nb_page int,
+    book_state text,
+    primary key clustered
+    (
+        id
+    )
+)
+
+go
+create procedure sp_update_book
+(
+    @id int,
+    @title varchar(255),
+    @nb_page int,
+    @book_state text
+)
+as
+begin
+    merge into t_book using(values(@id, @title, @nb_page, @book_state)) as buku(a, b, c, d) on t_book.id = buku.a
+    
+    when matched then
+        update set title = @title, nb_page = @nb_page, book_state = @book_state
+    when not matched then
+        insert values (a, b, c, d);
+end
+
+execute sp_update_book 1, 'Josh et la vie spirituelle', 900,'new'
+select * from t_book
